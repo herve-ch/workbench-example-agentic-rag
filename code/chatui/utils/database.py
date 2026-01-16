@@ -238,7 +238,7 @@ def _clear(
 
         if delete_all:
             for item in os.listdir(persist_directory):
-                if item.startswith(".") or item.startswith("chroma."):
+                if item.startswith(".") or item.startswith("chroma.") or item.startswith("readme-images"):
                     continue  # Skip hidden files like .gitkeep and the sqlite3 file
 
                 path = os.path.join(persist_directory, item)
