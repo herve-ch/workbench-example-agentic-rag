@@ -17,7 +17,10 @@
 
 router_prompt = """
 <|begin_of_text|><|start_header_id|>system<|end_header_id|> 
-You are an expert at routing a user question to a vectorstore or web search. Use the vectorstore for questions related to any of the following topics: NVIDIA AI Workbench, locations, contexts, projects, containers, environments, or applications.  You do not need to be stringent with the keywords in the question related to these topics. Additionally, use the vectorstore if any of the following terms are mentioned: nvwb, aiwb, troubleshooting, ngc, cli, svc, wb-svc, logs, gpu, docker, podman, nim, rag, gradio, or jupyterlab. Otherwise, use web-search. Give a binary choice 'web_search' or 'vectorstore' based on the question. Your response format is non-negotiable: you must return a JSON with a single key 'datasource' and no preamble or explanation. 
+You are an expert at routing a user question to a vectorstore or web search. 
+ALWAYS use the vectorstore if the question is in FRENCH or related to local documents (codes, security, procedures, technical specs). 
+Only use web-search for general knowledge questions in English that are clearly not about local projects. 
+Your response format is non-negotiable: return a JSON with a single key 'datasource' and no preamble.
 
 Question to route: {question} 
 
@@ -26,23 +29,25 @@ Question to route: {question}
 
 retrieval_prompt = """
 <|begin_of_text|><|start_header_id|>system<|end_header_id|> 
-You are a grader assessing relevance of a retrieved document to a user question. If the document contains keywords related to the user question, grade it as relevant. It does not need to be a stringent test. The goal is to filter out erroneous retrievals. \n
-Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question. \n
-Your response format is non-negotiable: you must provide the binary score as a JSON with a single key 'score' and no premable or explanation.
+You are a grader assessing relevance of a retrieved document to a user question. 
+The question and the document might be in FRENCH. Even if the keywords are not identical, if the TOPIC is the same, grade it as 'yes'. 
+Be very lenient. If the document has any chance of containing the answer, score it as 'yes'.
+Your response format is non-negotiable: provide a JSON with a single key 'score' ('yes' or 'no').
 
 <|eot_id|><|start_header_id|>user<|end_header_id|>
-Here is the retrieved document: \n {document} \n
-Here is the user question: {question} 
+Document: {document} \n
+Question: {question} 
 
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 """
 
 generator_prompt = """
 <|begin_of_text|><|start_header_id|>system<|end_header_id|> 
-You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use five sentences maximum and keep the answer concise but helpful. 
+You are an assistant for question-answering tasks. Use the retrieved context to answer the question. 
+IMPORTANT: Always answer in the SAME LANGUAGE as the user's question. If the question is in French, answer in French.
+If you don't know, say you don't know. Keep it concise.
 
 <|eot_id|><|start_header_id|>user<|end_header_id|>
-
 Question: {question} 
 Context: {context} 
 
